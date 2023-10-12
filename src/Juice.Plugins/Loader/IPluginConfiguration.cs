@@ -25,13 +25,22 @@ namespace Juice.Plugins.Loader
             var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")
                 ?? "Production";
 
-            var regex = new Regex($"appsettings\\.[\\w]+\\.{environment}\\.json");
+            var regex = new Regex($"appsettings\\.[\\w]+\\.{environment}\\.json"); // separate appsettings for each environment
             var files = Directory.GetFiles(CurrentDirectory)
                .Where(f => regex.IsMatch(f))
                .ToArray();
 
             var builder = new ConfigurationBuilder()
-                .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
+                .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true) // application settings
+                .AddJsonFile($"appsettings.{environment}.json", optional: true, reloadOnChange: true) // application environment settings
+                ;
+
+            if (CurrentDirectory != Directory.GetCurrentDirectory())
+            {
+                builder.AddJsonFile(Path.Combine(CurrentDirectory, "appsettings.json"), optional: true, reloadOnChange: true) // plugin settings
+                    .AddJsonFile(Path.Combine(CurrentDirectory, $"appsettings.{environment}.json"), optional: true, reloadOnChange: true) // plugin environment settings
+                    ;
+            }
 
             foreach (var f in files)
             {

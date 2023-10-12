@@ -1,8 +1,10 @@
 ﻿using FluentAssertions;
 using Juice.Extensions.DependencyInjection;
+using Juice.Plugins.Loader;
 using Juice.Plugins.Management;
 using Juice.Plugins.Tests.PluginBase;
 using Juice.XUnit;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Xunit.Abstractions;
@@ -412,10 +414,84 @@ namespace Juice.Plugins.Tests.XUnit
 
         }
 
+        [IgnoreOnCIFact(DisplayName = "Plugin should load it ownned appsettings.json"), TestPriority(999)]
+        public void Plugin_should_load_appsettings()
+        {
+            var resolver = new DependencyResolver
+            {
+                CurrentDirectory = AppContext.BaseDirectory
+            };
+            var pluginPaths = new string[]
+            {
+                GetPluginPath("pluginA")
+            };
+            resolver.ConfigureServices(services =>
+            {
+                var configService = services.BuildServiceProvider().GetRequiredService<IConfigurationService>();
+                var configuration = configService.GetConfiguration();
+                services.AddSingleton(provider => _output);
+                services.AddLogging(builder =>
+                {
+                    builder.ClearProviders()
+                    .AddTestOutputLogger()
+                    .AddConfiguration(configuration.GetSection("Logging"));
+                });
+                services.AddSingleton<SharedService>();
+                services.AddPlugins(options =>
+                {
+                    options.AbsolutePaths = pluginPaths;
+                    options.ConfigureSharedServices = (services, sp) =>
+                    {
+                        services.AddScoped(sp1 =>
+                        {
+                            var s = sp.GetRequiredService<SharedService>();
+                            var l = sp.GetRequiredService<ILoggerFactory>().CreateLogger("shared");
+                            l.LogInformation("Shared service created {0}", s.Id);
+                            return s;
+                        });
+                    };
+                    options.PluginLoaded = (_, args) =>
+                    {
+                        _output.WriteLine("Plugin {0} loaded", args.Plugin.Name);
+                    };
+                    options.PluginUnloading = (_, args) =>
+                    {
+                        _output.WriteLine("Plugin {0} unloading", args.Plugin.Name);
+                    };
+                });
+            });
+
+            var serviceProvider = resolver.ServiceProvider;
+
+            var pluginsManager = serviceProvider.GetRequiredService<IPluginsManager>();
+            var plugins = pluginsManager.Plugins;
+            foreach (var plugin in plugins)
+            {
+                if (plugin.Error != null)
+                {
+                    _output.WriteLine(plugin.Error.ToString());
+                }
+            }
+            plugins.Count().Should().Be(1);
+            plugins.Count(p => p.IsInitialized).Should().Be(1);
+
+            var aplugin = plugins.First();
+            var pConfiguration = aplugin.ServiceProvider?.GetRequiredService<IPluginConfiguration>();
+            var configuration = pConfiguration?.GetConfiguration(GetType().Assembly); // assembly to load user secrets
+            var options = configuration?.GetSection("Options")?.Get<Options>();
+            options.Should().NotBeNull();
+            options?.Option1.Should().Be("pluginA");
+        }
+
         static string GetPluginPath(string pluginName)
         {
 
             return Path.GetFullPath(Path.Combine("..\\..\\..\\..\\..\\test", "plugins", pluginName, $"Juice.Plugins.Tests.{pluginName}.dll"));
         }
+    }
+
+    class Options
+    {
+        public string Option1 { get; set; }
     }
 }
