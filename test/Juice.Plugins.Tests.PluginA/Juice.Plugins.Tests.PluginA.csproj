@@ -5,6 +5,7 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <EnableDynamicLoading>true</EnableDynamicLoading>
+        <IsPackable>false</IsPackable>
         <!-- This element is important -->
     </PropertyGroup>
 
