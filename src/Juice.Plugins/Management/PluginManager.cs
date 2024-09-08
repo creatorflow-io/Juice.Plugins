@@ -19,8 +19,8 @@ namespace Juice.Plugins.Management
 
         private Action<IServiceCollection>? _configureSharedServices;
 
-        public event EventHandler<PluginLoadEventArgs> PluginLoaded;
-        public event EventHandler<PluginUnloadEventArgs> PluginUnloading;
+        public event EventHandler<PluginLoadEventArgs>? PluginLoaded;
+        public event EventHandler<PluginUnloadEventArgs>? PluginUnloading;
 
         public PluginsManager(string[] pluginPaths, ILogger<PluginsManager> logger,
             Action<IServiceCollection>? configureSharedServices)
@@ -28,10 +28,9 @@ namespace Juice.Plugins.Management
             _pluginPaths = pluginPaths;
             _logger = logger;
             _configureSharedServices = configureSharedServices;
-            LoadPlugins();
         }
 
-        private void LoadPlugins()
+        public void LoadPlugins()
         {
             foreach (var pluginPath in _pluginPaths)
             {
@@ -54,13 +53,13 @@ namespace Juice.Plugins.Management
 
         protected virtual void OnPluginLoaded(IPlugin plugin)
         {
-            EventHandler<PluginLoadEventArgs> handler = PluginLoaded;
+            EventHandler<PluginLoadEventArgs>? handler = PluginLoaded;
             handler?.Invoke(this, new PluginLoadEventArgs(plugin));
         }
 
         protected virtual void OnPluginUnload(IPlugin plugin)
         {
-            EventHandler<PluginUnloadEventArgs> handler = PluginUnloading;
+            EventHandler<PluginUnloadEventArgs>? handler = PluginUnloading;
             handler?.Invoke(this, new PluginUnloadEventArgs(plugin));
         }
 

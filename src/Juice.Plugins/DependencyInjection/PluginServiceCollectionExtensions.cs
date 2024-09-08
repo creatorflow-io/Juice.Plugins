@@ -26,7 +26,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 {
                     pluginsManager.PluginUnloading += options.PluginUnloading;
                 }
-
+                pluginsManager.LoadPlugins();
                 return pluginsManager;
             });
 

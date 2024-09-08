@@ -14,7 +14,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Juice" Version="$(JuiceRefVersion)" />
+        <PackageReference Include="Juice" Version="$(JuiceVersion)" ExcludeAssets="runtime"/>
     </ItemGroup>
     <ItemGroup>
         <ProjectReference Include="..\Juice.Plugins.Tests.Common\Juice.Plugins.Tests.Common.csproj" />
