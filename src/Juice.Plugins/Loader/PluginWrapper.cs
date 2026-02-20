@@ -78,6 +78,12 @@ namespace Juice.Plugins.Loader
                     var assembly = Context.LoadFromAssemblyName(new AssemblyName(Path.GetFileNameWithoutExtension(_path)));
                     Version = assembly.GetName().Version?.ToString() ?? "";
                     Author = assembly.GetCustomAttribute<AssemblyCompanyAttribute>()?.Company;
+                    var attributeName = assembly.GetCustomAttribute<PluginNameAttribute>()?.Name;
+                    if (!string.IsNullOrWhiteSpace(attributeName))
+                    {
+                        Name = attributeName;
+                        Console.WriteLine($"Plugin name set from attribute: {Name}");
+                    }
                     var services = new ServiceCollection();
                     configureSharedServices?.Invoke(services);
                     ConfigureServices(services, assembly);

@@ -24,6 +24,10 @@
             <ExcludeAssets>runtime</ExcludeAssets>
             <!-- This element is important -->
         </ProjectReference>
+        <ProjectReference Include="..\..\src\Juice.Plugins.Abstractions\Juice.Plugins.Abstractions.csproj">
+            <Private>false</Private>
+            <ExcludeAssets>runtime</ExcludeAssets>
+        </ProjectReference>
     </ItemGroup>
     <ItemGroup>
       <None Update="appsettings.json">
