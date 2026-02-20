@@ -18,6 +18,5 @@
         <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="$(MicrosoftExtensionsVersion)" />
         <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="$(MicrosoftExtensionsVersion)" />
 
-        <PackageReference Include="System.Text.Json" Version="8.0.4" />
     </ItemGroup>
 </Project>

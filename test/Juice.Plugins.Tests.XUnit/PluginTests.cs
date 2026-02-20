@@ -483,10 +483,18 @@ namespace Juice.Plugins.Tests.XUnit
             options?.Option1.Should().Be("pluginA");
         }
 
-        static string GetPluginPath(string pluginName)
+        private string GetPluginPath(string pluginName)
         {
-
-            return Path.GetFullPath(Path.Combine("..\\..\\..\\..\\..\\test", "plugins", pluginName, $"Juice.Plugins.Tests.{pluginName}.dll"));
+            var netVersion = Environment.Version.Major;
+            _output.WriteLine("Current .NET version: {0}", netVersion);
+            // Use CurrentDirectory from resolver which is set to AppContext.BaseDirectory
+            // Build output is in: $(SolutionDir)/build/bin/$(Configuration)/Juice.Plugins.Tests.XUnit/$(TargetFramework)
+            // Plugins are copied to: $(SolutionDir)/../test/plugins/...
+            // So from bin folder, go up to build, then to parent (SolutionDir), then down to test/plugins
+            var baseDir = AppContext.BaseDirectory; // e.g., D:\Workspaces\Juice\services\plugins\build\bin\Debug\Juice.Plugins.Tests.XUnit\net9.0
+            var pluginPath = Path.GetFullPath(Path.Combine(baseDir, "..\\..\\..\\..\\..", "test", "plugins", pluginName, $"net{netVersion}.0", $"Juice.Plugins.Tests.{char.ToUpper(pluginName[0])}{pluginName.Substring(1)}.dll"));
+            _output.WriteLine("Looking for plugin at: {0}", pluginPath);
+            return pluginPath;
         }
     }
 

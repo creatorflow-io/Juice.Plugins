@@ -23,7 +23,7 @@ namespace Juice.Plugins.Tests.PluginA
         public string Execute()
         {
             _logger.LogInformation(_message.Hello() + " " + _sharedService.Id);
-            return _message.Hello() + " " + new DefaultStringIdGenerator().GenerateRandomId(6) + " " + _sharedService.Id;
+            return _message.Hello() + " " + StringIdGenerator.Instance.GenerateRandomId(6) + " " + _sharedService.Id;
         }
 
         public void Dispose()
