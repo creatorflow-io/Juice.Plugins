@@ -1,4 +1,4 @@
-﻿using System.Collections.ObjectModel;
+using System.Collections.ObjectModel;
 using Juice.Plugins.Loader;
 using Juice.Plugins.Management.Events;
 using Microsoft.Extensions.DependencyInjection;
@@ -41,11 +41,11 @@ namespace Juice.Plugins.Management
 
                 if (plugin.IsLoaded)
                 {
-                    _logger.LogInformation($"Loaded plugin: {pluginPath}");
+                    _logger.LogInformation("Loaded plugin: {PluginName} ({PluginPath})", plugin.Name, pluginPath);
                 }
                 else if (!string.IsNullOrEmpty(plugin.Error))
                 {
-                    _logger.LogError($"Failed to load plugin: {pluginPath} {plugin.Error}");
+                    _logger.LogError("Failed to load plugin: {PluginName} ({PluginPath}) {Error}", plugin.Name, pluginPath, plugin.Error);
                 }
                 OnPluginLoaded(plugin);
             }
@@ -73,11 +73,11 @@ namespace Juice.Plugins.Management
                     existingPlugin.TryLoad(_configureSharedServices);
                     if (existingPlugin.IsLoaded)
                     {
-                        _logger.LogInformation($"Loaded plugin: {pluginPath}");
+                        _logger.LogInformation("Loaded plugin: {PluginName} ({PluginPath})", existingPlugin.Name, pluginPath);
                     }
                     else if (!string.IsNullOrEmpty(existingPlugin.Error))
                     {
-                        _logger.LogError($"Failed to load plugin: {pluginPath} {existingPlugin.Error}");
+                        _logger.LogError("Failed to load plugin: {PluginName} ({PluginPath}) {Error}", existingPlugin.Name, pluginPath, existingPlugin.Error);
                     }
                     OnPluginLoaded(existingPlugin);
                 }
@@ -92,26 +92,28 @@ namespace Juice.Plugins.Management
                 _plugins.Add(plugin);
                 if (plugin.IsLoaded)
                 {
-                    _logger.LogInformation($"Loaded plugin: {pluginPath}");
+                    _logger.LogInformation("Loaded plugin: {PluginName} ({PluginPath})", plugin.Name, pluginPath);
                 }
                 else if (!string.IsNullOrEmpty(plugin.Error))
                 {
-                    _logger.LogError($"Failed to load plugin: {pluginPath} {plugin.Error}");
+                    _logger.LogError("Failed to load plugin: {PluginName} ({PluginPath}) {Error}", plugin.Name, pluginPath, plugin.Error);
                 }
                 OnPluginLoaded(plugin);
                 return (plugin.IsLoaded, plugin.Error ??
                     (plugin.IsEnabled ? "Load succeeded" : ""));
             }
         }
+
         public (bool Unloaded, string Message) UnloadPlugin(string pluginPath)
         {
             var plugin = _plugins.FirstOrDefault(p => p.IsSamePath(pluginPath));
             if (plugin != null)
             {
+                var pluginName = plugin.Name;
                 OnPluginUnload(plugin);
                 plugin.Dispose();
                 _plugins.Remove(plugin);
-                _logger.LogInformation($"Unloaded plugin: {pluginPath}");
+                _logger.LogInformation("Unloaded plugin: {PluginName} ({PluginPath})", pluginName, pluginPath);
                 return (true, "Unload succeeded!");
             }
             else
@@ -121,4 +123,3 @@ namespace Juice.Plugins.Management
         }
     }
 }
-

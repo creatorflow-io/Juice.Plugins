@@ -400,7 +400,7 @@ namespace Juice.Plugins.Tests.XUnit
             plugins.Count().Should().Be(3);
             plugins.Count(p => p.IsInitialized).Should().Be(2);
 
-            var pluginA = plugins.First(p => p.Name == "pluginA");
+            var pluginA = plugins.First(p => p.Name == "PluginA");
             pluginA.GetType("Juice.Plugins.Tests.Common.MessageService, Juice.Plugins.Tests.Common, Version=7.0.0.0").Should().NotBeNull();
 
             pluginA.GetType("Juice.Plugins.Tests.Common.MessageService, Juice.Plugins.Tests.Common").Should().NotBeNull();
@@ -481,6 +481,75 @@ namespace Juice.Plugins.Tests.XUnit
             var options = configuration?.GetSection("Options")?.Get<Options>();
             options.Should().NotBeNull();
             options?.Option1.Should().Be("pluginA");
+        }
+
+        [IgnoreOnCIFact(DisplayName = "Plugin name should resolve from PluginNameAttribute"), TestPriority(999)]
+        public void Plugin_name_resolves_from_attribute()
+        {
+            var resolver = new DependencyResolver
+            {
+                CurrentDirectory = AppContext.BaseDirectory
+            };
+            resolver.ConfigureServices(services =>
+            {
+                var configService = services.BuildServiceProvider().GetRequiredService<IConfigurationService>();
+                var configuration = configService.GetConfiguration();
+                services.AddSingleton(provider => _output);
+                services.AddLogging(builder =>
+                {
+                    builder.ClearProviders()
+                        .AddTestOutputLogger()
+                        .AddConfiguration(configuration.GetSection("Logging"));
+                });
+                services.AddPlugins(options =>
+                {
+                    options.AbsolutePaths = new[] { GetPluginPath("pluginA") };
+                });
+            });
+
+            var serviceProvider = resolver.ServiceProvider;
+            var pluginsManager = serviceProvider.GetRequiredService<IPluginsManager>();
+            var plugins = pluginsManager.Plugins;
+
+            plugins.Count.Should().Be(1);
+            plugins[0].IsLoaded.Should().BeTrue(plugins[0].Error ?? "plugin failed to load");
+            plugins[0].Name.Should().Be("PluginA");
+        }
+
+        [IgnoreOnCIFact(DisplayName = "Plugin name should fall back to directory name when no attribute"), TestPriority(999)]
+        public void Plugin_name_falls_back_to_directory_when_no_attribute()
+        {
+            var resolver = new DependencyResolver
+            {
+                CurrentDirectory = AppContext.BaseDirectory
+            };
+            resolver.ConfigureServices(services =>
+            {
+                var configService = services.BuildServiceProvider().GetRequiredService<IConfigurationService>();
+                var configuration = configService.GetConfiguration();
+                services.AddSingleton(provider => _output);
+                services.AddLogging(builder =>
+                {
+                    builder.ClearProviders()
+                        .AddTestOutputLogger()
+                        .AddConfiguration(configuration.GetSection("Logging"));
+                });
+                services.AddPlugins(options =>
+                {
+                    options.AbsolutePaths = new[] { GetPluginPath("pluginB") };
+                });
+            });
+
+            var serviceProvider = resolver.ServiceProvider;
+            var pluginsManager = serviceProvider.GetRequiredService<IPluginsManager>();
+            var plugins = pluginsManager.Plugins;
+
+            var pluginBPath = GetPluginPath("pluginB");
+            var expectedFallbackName = new DirectoryInfo(Path.GetDirectoryName(pluginBPath)!).Name;
+
+            plugins.Count.Should().Be(1);
+            plugins[0].IsLoaded.Should().BeTrue(plugins[0].Error ?? "plugin failed to load");
+            plugins[0].Name.Should().Be(expectedFallbackName);
         }
 
         private string GetPluginPath(string pluginName)
