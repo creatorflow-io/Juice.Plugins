@@ -9,6 +9,10 @@
 *.userosscache
 *.sln.docstates
 
+# AI tools
+.claude/
+specs/
+
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
 
@@ -23,9 +27,6 @@ bld/
 [Bb]in/
 [Oo]bj/
 [Ll]og/
-
-# Speckit output
-specs/
 
 # Visual Studio 2015/2017 cache/options directory
 .vs/
